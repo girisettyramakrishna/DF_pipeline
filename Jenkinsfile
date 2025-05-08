@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         APP_DIR = "/srv/shiny-server/demand-forecasting"
-        RSCRIPT = "/usr/bin/Rscript"  // Use full path to Rscript
+        RSCRIPT = "/usr/bin/Rscript"
+        R_LIBS_USER = "${HOME}/R/library"
     }
 
     stages {
@@ -16,7 +17,8 @@ pipeline {
         stage('Install R Packages') {
             steps {
                 sh '''
-                    ${RSCRIPT} -e "install.packages(c('shiny', 'forecast', 'ggplot2'), repos='https://cloud.r-project.org')"
+                    mkdir -p $R_LIBS_USER
+                    ${RSCRIPT} -e "install.packages(c('shiny', 'forecast', 'ggplot2'), lib='${R_LIBS_USER}', repos='https://cloud.r-project.org')"
                 '''
             }
         }
@@ -40,10 +42,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful. Visit: http://localhost:3838/demand-forecasting"
+            echo " Deployment successful. App is live at: http://localhost:3838/demand-forecasting"
         }
         failure {
-            echo "Deployment failed. Check Jenkins logs for errors."
+            echo " Deployment failed. Check Jenkins logs for details."
         }
     }
 }
