@@ -1,46 +1,49 @@
 pipeline {
     agent any
-    
+
     environment {
-        APP_DIR = "/srv/shiny-server/demand-forecasting"  // Location where the app will be deployed
+        APP_DIR = "/srv/shiny-server/demand-forecasting"
+        RSCRIPT = "/usr/bin/Rscript"  // Use full path to Rscript
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository from GitHub (public, no credentials needed)
                 git 'https://github.com/girisettyramakrishna/DF_pipeline.git'
             }
         }
-        
-        stage('Install Dependencies') {
+
+        stage('Install R Packages') {
             steps {
-                // Install necessary R packages (adjust if needed)
-                sh 'Rscript -e "install.packages(c(\'shiny\', \'forecast\', \'ggplot2\'))"'
+                sh '''
+                    ${RSCRIPT} -e "install.packages(c('shiny', 'forecast', 'ggplot2'), repos='https://cloud.r-project.org')"
+                '''
             }
         }
 
-        stage('Deploy to Shiny Server') {
+        stage('Deploy App to Shiny Server') {
             steps {
-                // Copy the app to Shiny Server directory
-                sh 'sudo cp -r . /srv/shiny-server/demand-forecasting/'
-                
-                // Set the correct permissions for the app
-                sh 'sudo chown -R shiny:shiny /srv/shiny-server/demand-forecasting/'
+                sh '''
+                    sudo mkdir -p ${APP_DIR}
+                    sudo cp -r * ${APP_DIR}/
+                    sudo chown -R shiny:shiny ${APP_DIR}
+                '''
             }
         }
-        
+
         stage('Restart Shiny Server') {
             steps {
-                // Restart Shiny Server to reflect the new app
                 sh 'sudo systemctl restart shiny-server'
             }
         }
     }
-    
+
     post {
-        always {
-            // Actions after the pipeline run (e.g., clean up)
+        success {
+            echo "Deployment successful. Visit: http://localhost:3838/demand-forecasting"
+        }
+        failure {
+            echo "Deployment failed. Check Jenkins logs for errors."
         }
     }
 }
