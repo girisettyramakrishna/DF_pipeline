@@ -10,12 +10,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Checkout the repository code
                 git url: "${GIT_REPO}", branch: 'master'
             }
         }
 
         stage('Install R Packages') {
             steps {
+                // Install R packages (if required) from 'packages_to_be_installed.R'
                 sh '''
                     if [ -f packages_to_be_installed.R ]; then
                         echo "Installing R packages from packages_to_be_installed.R..."
@@ -29,24 +31,26 @@ pipeline {
 
         stage('Deploy App to Shiny Server') {
             steps {
+                // Deploy the app to Shiny Server directory
                 sh '''
                     echo "Cleaning old deployment..."
-                    sudo rm -rf ${DEPLOY_DIR}
+                    sudo rm -rf ${DEPLOY_DIR}  # Clean old deployment files
                     
                     echo "Creating new deployment directory..."
-                    sudo mkdir -p ${DEPLOY_DIR}
+                    sudo mkdir -p ${DEPLOY_DIR}  # Ensure directory is created
 
-                    echo "Copying files to deployment directory..."
-                    sudo cp -r * ${DEPLOY_DIR}/
+                    echo "Copying application files to deployment directory..."
+                    sudo cp -r * ${DEPLOY_DIR}/  # Copy current repository files
 
-                    echo "Changing ownership to shiny user..."
-                    sudo chown -R shiny:shiny ${DEPLOY_DIR}
+                    echo "Changing ownership to 'shiny' user..."
+                    sudo chown -R shiny:shiny ${DEPLOY_DIR}  # Ensure shiny user has ownership
                 '''
             }
         }
 
         stage('Restart Shiny Server') {
             steps {
+                // Restart Shiny Server to apply the changes
                 sh 'sudo systemctl restart shiny-server'
             }
         }
@@ -54,10 +58,12 @@ pipeline {
 
     post {
         success {
-            echo " Deployment successful. Access app at: http://192.168.0.109:3838/${APP_NAME}/"
+            // Notify successful deployment with the application URL
+            echo "Deployment successful. Access app at: http://192.168.42.105:3838/${APP_NAME}/"
         }
         failure {
-            echo " Deployment failed. Check logs for details."
+            // Notify failure in case of errors
+            echo "Deployment failed. Check logs for details."
         }
     }
 }
