@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        APP_DIR = "/srv/shiny-server/demand-forecasting"
+        R_LIBS_USER = '/usr/local/lib/R/site-library'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/girisettyramakrishna/DF_pipeline.git'
+                git url: 'https://github.com/girisettyramakrishna/DF_pipeline.git', branch: 'master'
             }
         }
 
@@ -23,9 +23,8 @@ pipeline {
         stage('Deploy App to Shiny Server') {
             steps {
                 sh '''
-                    sudo mkdir -p "$APP_DIR"
-                    sudo cp -r ./app/* "$APP_DIR"/
-                    sudo chown -R shiny:shiny "$APP_DIR"
+                    sudo mkdir -p /srv/shiny-server/demand-forecasting
+                    sudo cp -r app.R www forecast data.R forecast.R packages_to_be_installed.R /srv/shiny-server/demand-forecasting/
                 '''
             }
         }
@@ -38,11 +37,11 @@ pipeline {
     }
 
     post {
-        success {
-            echo "Deployment successful. App is live at: http://192.168.42.87:3838/demand-forecasting"
-        }
         failure {
-            echo "Deployment failed. Check Jenkins logs for error details."
+            echo 'Deployment failed. Check Jenkins logs for error details.'
+        }
+        success {
+            echo 'Deployment completed successfully.'
         }
     }
 }
