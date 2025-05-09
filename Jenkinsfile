@@ -1,22 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        R_LIBS_USER = '/usr/local/lib/R/site-library'
-    }
-
     stages {
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/girisettyramakrishna/DF_pipeline.git', branch: 'master'
-            }
-        }
-
-        stage('Install R Packages') {
-            steps {
-                sh '''
-                    sudo Rscript -e "install.packages(c('shiny', 'forecast', 'ggplot2', 'rmarkdown', 'lubridate'), repos='https://cloud.r-project.org')"
-                '''
             }
         }
 
