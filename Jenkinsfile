@@ -54,7 +54,7 @@ pipeline {
 
     post {
         success {
-            echo " Deployment successful. Access app at: http://<your-ip>:3838/${APP_NAME}/"
+            echo " Deployment successful. Access app at: http://192.168.0.109:3838/${APP_NAME}/"
         }
         failure {
             echo " Deployment failed. Check logs for details."
