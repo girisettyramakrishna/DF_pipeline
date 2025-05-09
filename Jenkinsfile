@@ -10,15 +10,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/girisettyramakrishna/DF_pipeline.git'
+                git url: 'https://github.com/girisettyramakrishna/DF_pipeline.git'
             }
         }
 
         stage('Install R Packages') {
             steps {
                 sh '''
-                    mkdir -p $R_LIBS_USER
-                    ${RSCRIPT} -e "install.packages(c('shiny', 'forecast', 'ggplot2'), lib='${R_LIBS_USER}', repos='https://cloud.r-project.org')"
+                    mkdir -p "$R_LIBS_USER"
+                    $RSCRIPT -e "install.packages(c('shiny', 'forecast', 'ggplot2', 'rmarkdown', 'lubridate'), lib=Sys.getenv('R_LIBS_USER'), repos='https://cloud.r-project.org')"
                 '''
             }
         }
@@ -26,9 +26,10 @@ pipeline {
         stage('Deploy App to Shiny Server') {
             steps {
                 sh '''
-                    sudo mkdir -p ${APP_DIR}
-                    sudo cp -r * ${APP_DIR}/
-                    sudo chown -R shiny:shiny ${APP_DIR}
+                    # Use only contents inside the app directory (assumes your app is inside a folder)
+                    sudo mkdir -p "$APP_DIR"
+                    sudo cp -r ./* "$APP_DIR"/
+                    sudo chown -R shiny:shiny "$APP_DIR"
                 '''
             }
         }
@@ -45,7 +46,7 @@ pipeline {
             echo " Deployment successful. App is live at: http://localhost:3838/demand-forecasting"
         }
         failure {
-            echo " Deployment failed. Check Jenkins logs for details."
+            echo " Deployment failed. Check Jenkins logs for error details."
         }
     }
 }
